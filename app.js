@@ -4,6 +4,7 @@ const cors = require("cors");
 const config = require("./utils/config");
 const notesRouter = require("./controllers/blogs");
 const logger = require("./utils/logger");
+const middleware = require("./utils/middleware");
 
 const app = express();
 
@@ -24,5 +25,8 @@ mongoose
 app.use(cors());
 app.use(express.json());
 app.use("/api/blogs", notesRouter);
+
+app.use(middleware.unknownEndpoint);
+app.use(middleware.errorHandler);
 
 module.exports = app;

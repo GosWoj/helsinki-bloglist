@@ -3,14 +3,14 @@ const dummy = (blogs) => {
 };
 
 const totalLikes = (blogs) => {
-  const total = blogs.reduce((acc, blog) => acc + blog.likes, 0);
+  const total = blogs.reduce((acc, curr) => acc + curr.likes, 0);
 
   return blogs.length === 0 ? 0 : total;
 };
 
 const favoriteBlog = (blogs) => {
-  const mostLikes = blogs.reduce((acc, blog) => {
-    return acc.likes > blog.likes ? acc : blog;
+  const mostLikes = blogs.reduce((acc, curr) => {
+    return acc.likes > curr.likes ? acc : curr;
   });
 
   const blog = {
@@ -40,9 +40,34 @@ const mostBlogs = (blogs) => {
   return author;
 };
 
+const mostLikes = (blogs) => {
+  //Counting likes for each author
+  const list = blogs.reduce((acc, curr) => {
+    let match = acc.find((element) => element.author === curr.author);
+
+    if (match) {
+      match.likes += curr.likes;
+    } else {
+      acc.push(curr);
+    }
+    return acc;
+  }, []);
+
+  //Finding out which author has the most likes
+  const most = list.reduce((a, c) => (a.likes > c.likes ? a : c));
+
+  const author = {
+    author: most.author,
+    likes: most.likes,
+  };
+
+  return author;
+};
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 };

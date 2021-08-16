@@ -22,8 +22,27 @@ const favoriteBlog = (blogs) => {
   return blog;
 };
 
+const mostBlogs = (blogs) => {
+  //Creates array of occurrences of all values
+  let list = blogs.map(
+    (a) => blogs.filter((b) => a.author === b.author).length
+  );
+
+  //Math.max checks which value is the highest and returns
+  //the name of the author from the index of original array
+  const name = blogs[list.indexOf(Math.max(...list))].author;
+
+  const author = {
+    author: name,
+    blogs: Math.max(...list),
+  };
+
+  return author;
+};
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
+  mostBlogs,
 };

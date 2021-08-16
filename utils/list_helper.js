@@ -23,21 +23,32 @@ const favoriteBlog = (blogs) => {
 };
 
 const mostBlogs = (blogs) => {
-  //Creates array of occurrences of all values
-  let list = blogs.map(
-    (a) => blogs.filter((b) => a.author === b.author).length
-  );
+  if (blogs.length > 1) {
+    //Creates array of occurrences of all values
+    let list = blogs.map(
+      (a) => blogs.filter((b) => a.author === b.author).length
+    );
 
-  //Math.max checks which value is the highest and returns
-  //the name of the author from the index of original array
-  const name = blogs[list.indexOf(Math.max(...list))].author;
+    //Math.max checks which value is the highest and returns
+    //the name of the author from the index of original array
+    const name = blogs[list.indexOf(Math.max(...list))].author;
 
-  const author = {
-    author: name,
-    blogs: Math.max(...list),
-  };
+    const author = {
+      author: name,
+      blogs: Math.max(...list),
+    };
 
-  return author;
+    return author;
+  } else if (blogs.length === 1) {
+    const author = {
+      author: blogs[0].author,
+      blogs: 1,
+    };
+
+    return author;
+  } else {
+    return null;
+  }
 };
 
 const mostLikes = (blogs) => {

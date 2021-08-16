@@ -52,27 +52,38 @@ const mostBlogs = (blogs) => {
 };
 
 const mostLikes = (blogs) => {
-  //Counting likes for each author
-  const list = blogs.reduce((acc, curr) => {
-    let match = acc.find((element) => element.author === curr.author);
+  if (blogs.length > 1) {
+    //Counting likes for each author
+    const list = blogs.reduce((acc, curr) => {
+      let match = acc.find((element) => element.author === curr.author);
 
-    if (match) {
-      match.likes += curr.likes;
-    } else {
-      acc.push(curr);
-    }
-    return acc;
-  }, []);
+      if (match) {
+        match.likes += curr.likes;
+      } else {
+        acc.push(curr);
+      }
+      return acc;
+    }, []);
 
-  //Finding out which author has the most likes
-  const most = list.reduce((a, c) => (a.likes > c.likes ? a : c));
+    //Finding out which author has the most likes
+    const most = list.reduce((a, c) => (a.likes > c.likes ? a : c));
 
-  const author = {
-    author: most.author,
-    likes: most.likes,
-  };
+    const author = {
+      author: most.author,
+      likes: most.likes,
+    };
 
-  return author;
+    return author;
+  } else if (blogs.length === 1) {
+    const author = {
+      author: blogs[0].author,
+      likes: blogs[0].likes,
+    };
+
+    return author;
+  } else {
+    return null;
+  }
 };
 
 module.exports = {

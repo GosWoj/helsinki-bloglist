@@ -16,7 +16,7 @@ describe("Total likes", () => {
     },
   ];
 
-  test("List with on blog", () => {
+  test("List with one blog", () => {
     expect(totalLikes(listWithOneBlog)).toBe(5);
   });
 
@@ -71,7 +71,7 @@ describe("Total likes", () => {
     },
   ];
 
-  test("More than one blog", () => {
+  test("List with more than one blog", () => {
     expect(totalLikes(blogs)).toBe(36);
   });
 });

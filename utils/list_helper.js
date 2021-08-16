@@ -9,17 +9,29 @@ const totalLikes = (blogs) => {
 };
 
 const favoriteBlog = (blogs) => {
-  const mostLikes = blogs.reduce((acc, curr) => {
-    return acc.likes > curr.likes ? acc : curr;
-  });
+  if (blogs.length > 1) {
+    const mostLikes = blogs.reduce((acc, curr) => {
+      return acc.likes > curr.likes ? acc : curr;
+    });
 
-  const blog = {
-    title: mostLikes.title,
-    author: mostLikes.author,
-    likes: mostLikes.likes,
-  };
+    const blog = {
+      title: mostLikes.title,
+      author: mostLikes.author,
+      likes: mostLikes.likes,
+    };
 
-  return blog;
+    return blog;
+  } else if (blogs.length === 1) {
+    const blog = {
+      title: blogs[0].title,
+      author: blogs[0].author,
+      likes: blogs[0].likes,
+    };
+
+    return blog;
+  } else {
+    return null;
+  }
 };
 
 const mostBlogs = (blogs) => {

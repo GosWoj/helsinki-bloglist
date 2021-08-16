@@ -1,6 +1,29 @@
 const favoriteBlog = require("../utils/list_helper").favoriteBlog;
 
 describe("Blog with most likes", () => {
+  test("Empty list", () => {
+    expect(favoriteBlog([])).toBe(null);
+  });
+
+  const listWithOneBlog = [
+    {
+      _id: "5a422aa71b54a676234d17f8",
+      title: "Go To Statement Considered Harmful",
+      author: "Edsger W. Dijkstra",
+      url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
+      likes: 5,
+      __v: 0,
+    },
+  ];
+
+  test("List with one blog", () => {
+    expect(favoriteBlog(listWithOneBlog)).toEqual({
+      title: "Go To Statement Considered Harmful",
+      author: "Edsger W. Dijkstra",
+      likes: 5,
+    });
+  });
+
   const blogs = [
     {
       _id: "5a422a851b54a676234d17f7",
@@ -52,7 +75,7 @@ describe("Blog with most likes", () => {
     },
   ];
 
-  test("Most liked blog", () => {
+  test("List with more than one blog", () => {
     expect(favoriteBlog(blogs)).toEqual({
       title: "Canonical string reduction",
       author: "Edsger W. Dijkstra",

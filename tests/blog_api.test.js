@@ -71,6 +71,12 @@ test("All blogs are returned", async () => {
   expect(response.body).toHaveLength(initialBlogs.length);
 });
 
+test("_id is transformed into id", async () => {
+  const response = await api.get("/api/blogs");
+
+  expect(response.body[0].id).toBeDefined();
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });

@@ -77,6 +77,27 @@ test("_id is transformed into id", async () => {
   expect(response.body[0].id).toBeDefined();
 });
 
+test("A new blog in saved in database", async () => {
+  const newBlog = {
+    title: "Google Search Engine",
+    author: "Edsger W. Dijkstra",
+    url: "http://google.com",
+    likes: 52,
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(200)
+    .expect("Content-Type", /application\/json/);
+
+  const response = await api.get("/api/blogs");
+  expect(response.body).toHaveLength(initialBlogs.length + 1);
+
+  const titles = response.body.map((r) => r.title);
+  expect(titles).toContain("Google Search Engine");
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });

@@ -98,6 +98,24 @@ test("A new blog in saved in database", async () => {
   expect(titles).toContain("Google Search Engine");
 });
 
+test("Missing like property defaults to 0", async () => {
+  const newBlog = {
+    title: "Google Search Engine 2",
+    author: "Edsger W. Dijkstra",
+    url: "http://google2.com",
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(200)
+    .expect("Content-Type", /application\/json/);
+
+  const response = await api.get("/api/blogs");
+  const likes = response.body.map((r) => r.likes);
+  expect(likes).toContain(0);
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });

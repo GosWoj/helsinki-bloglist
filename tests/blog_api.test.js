@@ -116,6 +116,24 @@ test("Missing like property defaults to 0", async () => {
   expect(likes).toContain(0);
 });
 
+test("Server responds with 400 if title or url are missing", async () => {
+  const newBlog = {
+    author: "Edsger W. Dijkstra",
+    url: "http://google.com",
+    likes: 52,
+  };
+
+  await api.post("/api/blogs").send(newBlog).expect(400);
+
+  const newBlog2 = {
+    title: "Google Search Engine 3",
+    author: "Edsger W. Dijkstra",
+    likes: 52,
+  };
+
+  await api.post("/api/blogs").send(newBlog2).expect(400);
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });

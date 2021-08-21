@@ -43,7 +43,7 @@ const initialBlogs = [
     title: "TDD harms architecture",
     author: "Robert C. Martin",
     url: "http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html",
-    likes: 0,
+    likes: 17,
     __v: 0,
   },
   {
@@ -59,10 +59,11 @@ const initialBlogs = [
 beforeEach(async () => {
   await Blog.deleteMany({});
 
-  for (let blog of initialBlogs) {
-    let blogObject = new Blog(blog);
-    await blogObject.save();
-  }
+  // for (let blog of initialBlogs) {
+  //   let blogObject = new Blog(blog);
+  //   await blogObject.save();
+  // }
+  await Blog.insertMany(initialBlogs);
 });
 
 test("All blogs are returned", async () => {
@@ -132,6 +133,18 @@ test("Server responds with 400 if title or url are missing", async () => {
   };
 
   await api.post("/api/blogs").send(newBlog2).expect(400);
+});
+
+test("Blog is deleted from the server", async () => {
+  const response = await api.get("/api/blogs");
+  const deletedTitle = response.body[0].title;
+
+  const id = response.body[0].id;
+  await api.delete(`/api/blogs/${id}`).expect(204);
+
+  const secondResponse = await api.get("/api/blogs");
+  const titles = secondResponse.body.map((r) => r.title);
+  expect(titles).not.toContain(deletedTitle);
 });
 
 afterAll(() => {

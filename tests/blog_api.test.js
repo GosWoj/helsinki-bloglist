@@ -147,6 +147,28 @@ test("Blog is deleted from the server", async () => {
   expect(titles).not.toContain(deletedTitle);
 });
 
+test("Blog is updated", async () => {
+  const response = await api.get("/api/blogs");
+  const id = response.body[0].id;
+
+  const updatedBlog = {
+    title: "The best React patterns",
+    author: response.body[0].author,
+    url: response.body[0].url,
+    likes: response.body[0].likes,
+  };
+
+  await api
+    .put(`/api/blogs/${id}`)
+    .send(updatedBlog)
+    .expect(200)
+    .expect("Content-Type", /application\/json/);
+
+  const secondResponse = await api.get("/api/blogs");
+  const titles = secondResponse.body.map((r) => r.title);
+  expect(titles).toContain("The best React patterns");
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });

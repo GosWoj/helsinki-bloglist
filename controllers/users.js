@@ -1,7 +1,6 @@
 const usersRouter = require("express").Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
-const logger = require("../utils/logger");
 
 usersRouter.get("/", async (request, response) => {
   const users = await User.find({});
@@ -28,7 +27,6 @@ usersRouter.post("/", async (request, response) => {
       const savedUser = await user.save();
       response.json(savedUser);
     } catch (error) {
-      logger.error(error);
       response.status(400).json({
         error: "Invalid username or password",
       });

@@ -2,7 +2,6 @@ const blogsRoute = require("express").Router();
 const jwt = require("jsonwebtoken");
 const Blog = require("../models/blog");
 const User = require("../models/user");
-const logger = require("../utils/logger");
 
 const getToken = (request) => {
   const authorization = request.get("authorization");
@@ -14,15 +13,19 @@ const getToken = (request) => {
   }
 };
 
-blogsRoute.get("/", async (request, response) => {
-  const blogs = await Blog.find({}).populate("user", {
-    name: 1,
-    username: 1,
-  });
-  response.json(blogs);
+blogsRoute.get("/", async (request, response, next) => {
+  try {
+    const blogs = await Blog.find({}).populate("user", {
+      name: 1,
+      username: 1,
+    });
+    response.json(blogs);
+  } catch (error) {
+    next(error);
+  }
 });
 
-blogsRoute.post("/", async (request, response) => {
+blogsRoute.post("/", async (request, response, next) => {
   if (!request.body.title || !request.body.url) {
     return response.status(400).json({
       error: "Missing title or url",
@@ -53,21 +56,21 @@ blogsRoute.post("/", async (request, response) => {
     user.blogs = user.blogs.concat(savedBlog._id);
     await user.save();
     response.json(savedBlog);
-  } catch (exception) {
-    logger.error(exception);
+  } catch (error) {
+    next(error);
   }
 });
 
-blogsRoute.delete("/:id", async (request, response) => {
+blogsRoute.delete("/:id", async (request, response, next) => {
   try {
     await Blog.findByIdAndRemove(request.params.id);
     response.status(204).end();
   } catch (error) {
-    logger.error(error);
+    next(error);
   }
 });
 
-blogsRoute.put("/:id", async (request, response) => {
+blogsRoute.put("/:id", async (request, response, next) => {
   const blog = {
     title: request.body.title,
     author: request.body.author,
@@ -81,7 +84,7 @@ blogsRoute.put("/:id", async (request, response) => {
     });
     response.json(updatedBlog);
   } catch (error) {
-    logger.error(error);
+    next(error);
   }
 });
 

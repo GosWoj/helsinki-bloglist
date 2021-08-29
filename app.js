@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const config = require("./utils/config");
-const notesRouter = require("./controllers/blogs");
+const blogsRouter = require("./controllers/blogs");
 const usersRouter = require("./controllers/users");
 const loginRouter = require("./controllers/login");
 const logger = require("./utils/logger");
@@ -28,7 +28,7 @@ app.use(cors());
 app.use(express.json());
 app.use(middleware.tokenExtractor);
 
-app.use("/api/blogs", notesRouter);
+app.use("/api/blogs", blogsRouter, middleware.userExtractor);
 app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 

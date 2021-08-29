@@ -2,6 +2,7 @@ const blogsRoute = require("express").Router();
 const jwt = require("jsonwebtoken");
 const Blog = require("../models/blog");
 const User = require("../models/user");
+const { userExtractor } = require("../utils/middleware");
 
 blogsRoute.get("/", async (request, response, next) => {
   try {
@@ -15,22 +16,8 @@ blogsRoute.get("/", async (request, response, next) => {
   }
 });
 
-blogsRoute.post("/", async (request, response, next) => {
-  if (!request.body.title || !request.body.url) {
-    return response.status(400).json({
-      error: "Missing title or url",
-    });
-  }
-
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-
-  if (!request.token || !decodedToken.id) {
-    return response.status(401).json({
-      error: "Token is missing or invalid",
-    });
-  }
-
-  const user = await User.findById(decodedToken.id);
+blogsRoute.post("/", userExtractor, async (request, response, next) => {
+  const user = request.user;
 
   const blog = new Blog({
     title: request.body.title,
@@ -50,16 +37,8 @@ blogsRoute.post("/", async (request, response, next) => {
   }
 });
 
-blogsRoute.delete("/:id", async (request, response, next) => {
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-
-  if (!request.token || !decodedToken.id) {
-    return response.status(401).json({
-      error: "Token is missing or invalid",
-    });
-  }
-
-  const user = await User.findById(decodedToken.id);
+blogsRoute.delete("/:id", userExtractor, async (request, response, next) => {
+  const user = request.user;
   const blog = await Blog.findById(request.params.id);
 
   if (blog.user.toString() === user._id.toString()) {

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const supertest = require("supertest");
 const Blog = require("../models/blog");
+const User = require("../models/user");
 const app = require("../app");
 
 const api = supertest(app);
@@ -56,8 +57,15 @@ const initialBlogs = [
   },
 ];
 
+const initialUser = {
+  name: "Test Testings",
+  username: "test",
+  password: "test1",
+};
+
 beforeEach(async () => {
   await Blog.deleteMany({});
+  await User.deleteMany({});
 
   // for (let blog of initialBlogs) {
   //   let blogObject = new Blog(blog);
@@ -79,15 +87,26 @@ test("_id is transformed into id", async () => {
 });
 
 test("A new blog in saved in database", async () => {
+  await api.post("/api/users").send(initialUser).expect(200);
+
+  const user = await api
+    .post("/api/login")
+    .send({
+      username: initialUser.username,
+      password: initialUser.password,
+    })
+    .expect(200);
+
   const newBlog = {
     title: "Google Search Engine",
-    author: "Edsger W. Dijkstra",
+    author: "Test Testings",
     url: "http://google.com",
     likes: 52,
   };
 
   await api
     .post("/api/blogs")
+    .set("Authorization", `bearer ${user.body.token}`)
     .send(newBlog)
     .expect(200)
     .expect("Content-Type", /application\/json/);
@@ -169,6 +188,7 @@ test("Blog is updated", async () => {
   expect(titles).toContain("The best React patterns");
 });
 
-afterAll(() => {
-  mongoose.connection.close();
+afterAll(async () => {
+  await mongoose.connection.close();
+  await mongoose.disconnect();
 });

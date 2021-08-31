@@ -184,11 +184,38 @@ test("Server responds with 400 if title or url are missing", async () => {
 });
 
 test("Blog is deleted from the server", async () => {
-  const response = await api.get("/api/blogs");
-  const deletedTitle = response.body[0].title;
+  await api.post("/api/users").send(initialUser).expect(200);
 
-  const id = response.body[0].id;
-  await api.delete(`/api/blogs/${id}`).expect(204);
+  const user = await api
+    .post("/api/login")
+    .send({
+      username: initialUser.username,
+      password: initialUser.password,
+    })
+    .expect(200);
+
+  const newBlog = {
+    title: "Google Search Engine",
+    author: "Test Testings",
+    url: "http://google.com",
+    likes: 52,
+  };
+
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `bearer ${user.body.token}`)
+    .send(newBlog)
+    .expect(200)
+    .expect("Content-Type", /application\/json/);
+
+  const response = await api.get("/api/blogs");
+  const deletedTitle = newBlog.title;
+
+  const id = response.body[6].id;
+  await api
+    .delete(`/api/blogs/${id}`)
+    .set("Authorization", `bearer ${user.body.token}`)
+    .expect(204);
 
   const secondResponse = await api.get("/api/blogs");
   const titles = secondResponse.body.map((r) => r.title);

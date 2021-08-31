@@ -72,7 +72,7 @@ beforeEach(async () => {
   //   await blogObject.save();
   // }
   await Blog.insertMany(initialBlogs);
-});
+}, 10000);
 
 test("All blogs are returned", async () => {
   const response = await api.get("/api/blogs");
@@ -186,6 +186,20 @@ test("Blog is updated", async () => {
   const secondResponse = await api.get("/api/blogs");
   const titles = secondResponse.body.map((r) => r.title);
   expect(titles).toContain("The best React patterns");
+});
+
+test("Adding new blog without token returns 401", async () => {
+  const newBlog = {
+    title: "Google Search Engine",
+    author: "Test Testings",
+    url: "http://google.com",
+    likes: 52,
+  };
+
+  await api.post("/api/blogs").send(newBlog).expect(401);
+
+  const response = await api.get("/api/blogs");
+  expect(response.body).toHaveLength(initialBlogs.length);
 });
 
 afterAll(async () => {

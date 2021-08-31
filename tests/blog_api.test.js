@@ -65,12 +65,6 @@ const initialUser = {
 
 beforeEach(async () => {
   await Blog.deleteMany({});
-  await User.deleteMany({});
-
-  // for (let blog of initialBlogs) {
-  //   let blogObject = new Blog(blog);
-  //   await blogObject.save();
-  // }
   await Blog.insertMany(initialBlogs);
 }, 10000);
 
@@ -86,189 +80,6 @@ test("_id is transformed into id", async () => {
   expect(response.body[0].id).toBeDefined();
 });
 
-test("A new blog in saved in database", async () => {
-  await api.post("/api/users").send(initialUser).expect(200);
-
-  const user = await api
-    .post("/api/login")
-    .send({
-      username: initialUser.username,
-      password: initialUser.password,
-    })
-    .expect(200);
-
-  const newBlog = {
-    title: "Google Search Engine",
-    author: "Test Testings",
-    url: "http://google.com",
-    likes: 52,
-  };
-
-  await api
-    .post("/api/blogs")
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(newBlog)
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
-
-  const response = await api.get("/api/blogs");
-  expect(response.body).toHaveLength(initialBlogs.length + 1);
-
-  const titles = response.body.map((r) => r.title);
-  expect(titles).toContain("Google Search Engine");
-});
-
-test("Missing like property defaults to 0", async () => {
-  await api.post("/api/users").send(initialUser).expect(200);
-
-  const user = await api
-    .post("/api/login")
-    .send({
-      username: initialUser.username,
-      password: initialUser.password,
-    })
-    .expect(200);
-
-  const newBlog = {
-    title: "Google Search Engine 2",
-    author: "Edsger W. Dijkstra",
-    url: "http://google2.com",
-  };
-
-  await api
-    .post("/api/blogs")
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(newBlog)
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
-
-  const response = await api.get("/api/blogs");
-  const likes = response.body.map((r) => r.likes);
-  expect(likes).toContain(0);
-});
-
-test("Server responds with 400 if title or url are missing", async () => {
-  await api.post("/api/users").send(initialUser).expect(200);
-
-  const user = await api
-    .post("/api/login")
-    .send({
-      username: initialUser.username,
-      password: initialUser.password,
-    })
-    .expect(200);
-
-  const newBlog = {
-    author: "Edsger W. Dijkstra",
-    url: "http://google.com",
-    likes: 52,
-  };
-
-  await api
-    .post("/api/blogs")
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(newBlog)
-    .expect(400);
-
-  const newBlog2 = {
-    title: "Google Search Engine 3",
-    author: "Edsger W. Dijkstra",
-    likes: 52,
-  };
-
-  await api
-    .post("/api/blogs")
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(newBlog2)
-    .expect(400);
-});
-
-test("Blog is deleted from the server", async () => {
-  await api.post("/api/users").send(initialUser).expect(200);
-
-  const user = await api
-    .post("/api/login")
-    .send({
-      username: initialUser.username,
-      password: initialUser.password,
-    })
-    .expect(200);
-
-  const newBlog = {
-    title: "Google Search Engine",
-    author: "Test Testings",
-    url: "http://google.com",
-    likes: 52,
-  };
-
-  await api
-    .post("/api/blogs")
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(newBlog)
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
-
-  const response = await api.get("/api/blogs");
-  const deletedTitle = newBlog.title;
-
-  const id = response.body[6].id;
-  await api
-    .delete(`/api/blogs/${id}`)
-    .set("Authorization", `bearer ${user.body.token}`)
-    .expect(204);
-
-  const secondResponse = await api.get("/api/blogs");
-  const titles = secondResponse.body.map((r) => r.title);
-  expect(titles).not.toContain(deletedTitle);
-});
-
-test("Blog is updated", async () => {
-  await api.post("/api/users").send(initialUser).expect(200);
-
-  const user = await api
-    .post("/api/login")
-    .send({
-      username: initialUser.username,
-      password: initialUser.password,
-    })
-    .expect(200);
-
-  const newBlog = {
-    title: "Google Search Engine",
-    author: "Test Testings",
-    url: "http://google.com",
-    likes: 52,
-  };
-
-  await api
-    .post("/api/blogs")
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(newBlog)
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
-
-  const response = await api.get("/api/blogs");
-  const id = response.body[6].id;
-
-  const updatedBlog = {
-    title: "The best React patterns",
-    author: newBlog.author,
-    url: newBlog.url,
-    likes: newBlog.likes,
-  };
-
-  await api
-    .put(`/api/blogs/${id}`)
-    .set("Authorization", `bearer ${user.body.token}`)
-    .send(updatedBlog)
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
-
-  const secondResponse = await api.get("/api/blogs");
-  const titles = secondResponse.body.map((r) => r.title);
-  expect(titles).toContain("The best React patterns");
-});
-
 test("Adding new blog without token returns 401", async () => {
   const newBlog = {
     title: "Google Search Engine",
@@ -281,6 +92,130 @@ test("Adding new blog without token returns 401", async () => {
 
   const response = await api.get("/api/blogs");
   expect(response.body).toHaveLength(initialBlogs.length);
+});
+
+describe("Requires token and new blog", () => {
+  let user;
+  let newBlog;
+
+  beforeEach(async () => {
+    await User.deleteMany({});
+
+    await api.post("/api/users").send(initialUser).expect(200);
+
+    user = await api
+      .post("/api/login")
+      .send({
+        username: initialUser.username,
+        password: initialUser.password,
+      })
+      .expect(200);
+
+    newBlog = {
+      title: "Google Search Engine",
+      author: "Test Testings",
+      url: "http://google.com",
+      likes: 52,
+    };
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `bearer ${user.body.token}`)
+      .send(newBlog)
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+  });
+
+  test("A new blog in saved in database", async () => {
+    const response = await api.get("/api/blogs");
+    expect(response.body).toHaveLength(initialBlogs.length + 1);
+
+    const titles = response.body.map((r) => r.title);
+    expect(titles).toContain("Google Search Engine");
+  });
+
+  test("Missing like property defaults to 0", async () => {
+    const newBlog = {
+      title: "Google Search Engine 2",
+      author: "Edsger W. Dijkstra",
+      url: "http://google2.com",
+    };
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `bearer ${user.body.token}`)
+      .send(newBlog)
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+
+    const response = await api.get("/api/blogs");
+    const likes = response.body.map((r) => r.likes);
+    expect(likes).toContain(0);
+  });
+
+  test("Server responds with 400 if title or url are missing", async () => {
+    const newBlog = {
+      author: "Edsger W. Dijkstra",
+      url: "http://google.com",
+      likes: 52,
+    };
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `bearer ${user.body.token}`)
+      .send(newBlog)
+      .expect(400);
+
+    const newBlog2 = {
+      title: "Google Search Engine 3",
+      author: "Edsger W. Dijkstra",
+      likes: 52,
+    };
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", `bearer ${user.body.token}`)
+      .send(newBlog2)
+      .expect(400);
+  });
+
+  test("Blog is deleted from the server", async () => {
+    const response = await api.get("/api/blogs");
+    const deletedTitle = newBlog.title;
+
+    const id = response.body[6].id;
+    await api
+      .delete(`/api/blogs/${id}`)
+      .set("Authorization", `bearer ${user.body.token}`)
+      .expect(204);
+
+    const secondResponse = await api.get("/api/blogs");
+    const titles = secondResponse.body.map((r) => r.title);
+    expect(titles).not.toContain(deletedTitle);
+  });
+
+  test("Blog is updated", async () => {
+    const response = await api.get("/api/blogs");
+    const id = response.body[6].id;
+
+    const updatedBlog = {
+      title: "The best React patterns",
+      author: newBlog.author,
+      url: newBlog.url,
+      likes: newBlog.likes,
+    };
+
+    await api
+      .put(`/api/blogs/${id}`)
+      .set("Authorization", `bearer ${user.body.token}`)
+      .send(updatedBlog)
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+
+    const secondResponse = await api.get("/api/blogs");
+    const titles = secondResponse.body.map((r) => r.title);
+    expect(titles).toContain("The best React patterns");
+  });
 });
 
 afterAll(async () => {

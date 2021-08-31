@@ -53,21 +53,34 @@ blogsRoute.delete("/:id", userExtractor, async (request, response, next) => {
   }
 });
 
-blogsRoute.put("/:id", async (request, response, next) => {
-  const blog = {
+blogsRoute.put("/:id", userExtractor, async (request, response, next) => {
+  const user = request.user;
+  const blog = await Blog.findById(request.params.id);
+
+  const newBlog = {
     title: request.body.title,
     author: request.body.author,
     url: request.body.url,
     likes: request.body.likes,
   };
 
-  try {
-    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {
-      new: true,
+  if (blog.user.toString() === user._id.toString()) {
+    try {
+      const updatedBlog = await Blog.findByIdAndUpdate(
+        request.params.id,
+        newBlog,
+        {
+          new: true,
+        }
+      );
+      response.json(updatedBlog);
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    response.status(401).json({
+      error: "Unauthorized access",
     });
-    response.json(updatedBlog);
-  } catch (error) {
-    next(error);
   }
 });
 

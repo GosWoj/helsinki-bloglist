@@ -223,18 +223,43 @@ test("Blog is deleted from the server", async () => {
 });
 
 test("Blog is updated", async () => {
+  await api.post("/api/users").send(initialUser).expect(200);
+
+  const user = await api
+    .post("/api/login")
+    .send({
+      username: initialUser.username,
+      password: initialUser.password,
+    })
+    .expect(200);
+
+  const newBlog = {
+    title: "Google Search Engine",
+    author: "Test Testings",
+    url: "http://google.com",
+    likes: 52,
+  };
+
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `bearer ${user.body.token}`)
+    .send(newBlog)
+    .expect(200)
+    .expect("Content-Type", /application\/json/);
+
   const response = await api.get("/api/blogs");
-  const id = response.body[0].id;
+  const id = response.body[6].id;
 
   const updatedBlog = {
     title: "The best React patterns",
-    author: response.body[0].author,
-    url: response.body[0].url,
-    likes: response.body[0].likes,
+    author: newBlog.author,
+    url: newBlog.url,
+    likes: newBlog.likes,
   };
 
   await api
     .put(`/api/blogs/${id}`)
+    .set("Authorization", `bearer ${user.body.token}`)
     .send(updatedBlog)
     .expect(200)
     .expect("Content-Type", /application\/json/);

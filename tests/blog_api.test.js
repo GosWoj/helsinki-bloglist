@@ -119,6 +119,16 @@ test("A new blog in saved in database", async () => {
 });
 
 test("Missing like property defaults to 0", async () => {
+  await api.post("/api/users").send(initialUser).expect(200);
+
+  const user = await api
+    .post("/api/login")
+    .send({
+      username: initialUser.username,
+      password: initialUser.password,
+    })
+    .expect(200);
+
   const newBlog = {
     title: "Google Search Engine 2",
     author: "Edsger W. Dijkstra",
@@ -127,6 +137,7 @@ test("Missing like property defaults to 0", async () => {
 
   await api
     .post("/api/blogs")
+    .set("Authorization", `bearer ${user.body.token}`)
     .send(newBlog)
     .expect(200)
     .expect("Content-Type", /application\/json/);
@@ -137,13 +148,27 @@ test("Missing like property defaults to 0", async () => {
 });
 
 test("Server responds with 400 if title or url are missing", async () => {
+  await api.post("/api/users").send(initialUser).expect(200);
+
+  const user = await api
+    .post("/api/login")
+    .send({
+      username: initialUser.username,
+      password: initialUser.password,
+    })
+    .expect(200);
+
   const newBlog = {
     author: "Edsger W. Dijkstra",
     url: "http://google.com",
     likes: 52,
   };
 
-  await api.post("/api/blogs").send(newBlog).expect(400);
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `bearer ${user.body.token}`)
+    .send(newBlog)
+    .expect(400);
 
   const newBlog2 = {
     title: "Google Search Engine 3",
@@ -151,7 +176,11 @@ test("Server responds with 400 if title or url are missing", async () => {
     likes: 52,
   };
 
-  await api.post("/api/blogs").send(newBlog2).expect(400);
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `bearer ${user.body.token}`)
+    .send(newBlog2)
+    .expect(400);
 });
 
 test("Blog is deleted from the server", async () => {

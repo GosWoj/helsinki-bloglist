@@ -84,4 +84,23 @@ blogsRoute.put("/:id", userExtractor, async (request, response, next) => {
   }
 });
 
+blogsRoute.put("/like/:id", async (request, response, next) => {
+  const blog = await Blog.findById(request.params.id);
+
+  const newBlog = { ...blog, likes: ++blog.likes };
+
+  try {
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      request.params.id,
+      newBlog,
+      {
+        new: true,
+      }
+    );
+    response.json(updatedBlog);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = blogsRoute;
